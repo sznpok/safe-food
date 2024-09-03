@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1023678774714",
+    "project_id": "khana-bachau-1064e",
+    "storage_bucket": "khana-bachau-1064e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1023678774714:android:471eb353cdad065bc2f183",
+        "android_client_info": {
+          "package_name": "com.mausam.khana_bachau"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC00acVvlDqgQK9vatl_wMwhjh8vz9zMRU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
