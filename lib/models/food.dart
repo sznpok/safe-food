@@ -3,13 +3,14 @@ class Food {
   late String name;
   late String description;
   late String image;
-  late double price;
-  late int quantity;
+  late dynamic price;
+  late dynamic quantity;
   late double totalPrice;
   late double latitude;
   late double longitude;
   late bool isAvailable;
   late String postedBy;
+  late String postedUserName;
   String? acceptingUserId;
   String? acceptingUserName;
   double? rating;
@@ -24,6 +25,7 @@ class Food {
     required this.totalPrice,
     required this.latitude,
     required this.longitude,
+    required this.postedUserName,
     required this.postedBy,
     this.isAvailable = true,
   });
@@ -34,7 +36,7 @@ class Food {
     image = obj["image"] ?? "";
     price = obj["price"];
     quantity = obj["quantity"];
-    totalPrice = obj["price"] * obj["quantity"];
+    totalPrice = obj['price'] != null ? obj["price"] * obj["quantity"] : 0;
     latitude = obj["latitude"];
     longitude = obj["longitude"];
     isAvailable = obj["isAvailable"];
@@ -42,6 +44,7 @@ class Food {
     acceptingUserId = obj["acceptingUserId"];
     acceptingUserName = obj["acceptingUserName"];
     rating = obj["rating"];
+    postedUserName = obj["postedUserName"];
   }
 
   Map<String, dynamic> toJson() {
@@ -57,6 +60,7 @@ class Food {
     map["postedBy"] = postedBy;
     map["acceptingUserId"] = acceptingUserId;
     map["acceptingUserName"] = acceptingUserName;
+    map["postedUserName"] = postedUserName;
     return map;
   }
 }

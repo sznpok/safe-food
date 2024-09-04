@@ -9,6 +9,7 @@ import 'package:save_food/models/food.dart';
 import 'package:save_food/models/user.dart';
 import 'package:save_food/providers/food_provider.dart';
 import 'package:save_food/screens/food_detail_screen.dart';
+import 'package:save_food/screens/payment_page.dart';
 import 'package:save_food/widgets/general_drop_down.dart';
 import 'package:save_food/widgets/general_elevated_button.dart';
 import 'package:save_food/widgets/general_text_field.dart';
@@ -272,169 +273,12 @@ class _HomeScreenState extends State<HomeScreen> {
           },
         ),
       ),
-      // floatingActionButton: profileData.isFoodDonor
-      //     ? FloatingActionButton(
-      //         onPressed: () {
-      //           navigate(
-      //             context,
-      //             FoodPostScreen(),
-      //           );
-      //         },
-      //         child: const Icon(
-      //           Icons.add,
-      //         ),
-      //         backgroundColor: Theme.of(context).primaryColor,
-      //       )
-      //     : null,
     );
   }
-
-  // Widget foodCard(BuildContext context, Food food) {
-  //   final toShowButton =
-  //       !Provider.of<UserProvider>(context, listen: false).user.isFoodDonor;
-  //   return InkWell(
-  //     onTap: () => navigate(
-  //       context,
-  //       FoodDetailScreen(food: food, toShowButton: toShowButton),
-  //     ),
-  //     child: CustomCard(
-  //       children: [
-  //         SizedBox(
-  //           width: SizeConfig.width * 100,
-  //           height: SizeConfig.height * 15,
-  //           child: Image.memory(
-  //             base64Decode(food.image),
-  //             fit: BoxFit.contain,
-  //             height: SizeConfig.height * 15,
-  //           ),
-  //         ),
-  //         SizedBox(
-  //           height: SizeConfig.height * 2,
-  //         ),
-  //         Text(
-  //           food.name,
-  //           style: Theme.of(context).textTheme.titleSmall,
-  //         ),
-  //         SizedBox(
-  //           height: SizeConfig.height * .5,
-  //         ),
-  //         Text(
-  //           food.description,
-  //           style: Theme.of(context).textTheme.bodySmall,
-  //         ),
-  //         SizedBox(
-  //           height: SizeConfig.height * 2,
-  //         ),
-  //         Row(
-  //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //           children: [
-  //             Column(
-  //               crossAxisAlignment: CrossAxisAlignment.start,
-  //               children: [
-  //                 Text(
-  //                   "Available Quantity",
-  //                   style: Theme.of(context).textTheme.labelLarge,
-  //                 ),
-  //                 SizedBox(
-  //                   height: SizeConfig.height * .5,
-  //                 ),
-  //                 Text(
-  //                   food.quantity.toString(),
-  //                   style: Theme.of(context).textTheme.bodyMedium,
-  //                 ),
-  //               ],
-  //             ),
-  //             Column(
-  //               crossAxisAlignment: CrossAxisAlignment.end,
-  //               children: [
-  //                 Text(
-  //                   "Unit Price",
-  //                   style: Theme.of(context).textTheme.labelLarge,
-  //                 ),
-  //                 SizedBox(
-  //                   height: SizeConfig.height * .5,
-  //                 ),
-  //                 Text(
-  //                   "Rs. ${food.price}",
-  //                   style: Theme.of(context).textTheme.bodyMedium,
-  //                 ),
-  //               ],
-  //             ),
-  //           ],
-  //         ),
-  //         SizedBox(
-  //           height: SizeConfig.height * 2,
-  //         ),
-  //         Text(
-  //           "Total Price: ${food.totalPrice}",
-  //           style: Theme.of(context).textTheme.titleSmall!.copyWith(
-  //                 fontSize: 16,
-  //                 color: Colors.deepOrange,
-  //               ),
-  //         ),
-  //         if (toShowButton || food.acceptingUserName != null)
-  //           SizedBox(
-  //             height: SizeConfig.height * 2,
-  //           ),
-  //         if (food.acceptingUserName != null)
-  //           Row(
-  //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //             children: [
-  //               Text(
-  //                 "Accepted By: ${food.acceptingUserName!}",
-  //                 style: Theme.of(context).textTheme.bodyMedium,
-  //               ),
-  //               const Spacer(),
-  //               if (food.rating != null)
-  //                 Text(
-  //                   "Rating: ",
-  //                   style: Theme.of(context).textTheme.bodySmall,
-  //                 ),
-  //               if (food.rating != null)
-  //                 RatingBarIndicator(
-  //                   rating: food.rating!,
-  //                   itemBuilder: (context, index) => const Icon(
-  //                     Icons.star,
-  //                     color: Colors.orange,
-  //                   ),
-  //                   itemCount: 5,
-  //                   itemSize: SizeConfig.width * 4,
-  //                   direction: Axis.horizontal,
-  //                 ),
-  //             ],
-  //           ),
-  //         if (toShowButton)
-  //           GeneralElevatedButton(
-  //             title: "Take Food",
-  //             onPressed: () async {
-  //               try {
-  //                 GeneralAlertDialog().customLoadingDialog(context);
-  //                 final user =
-  //                     Provider.of<UserProvider>(context, listen: false).user;
-  //                 await Provider.of<FoodProvider>(context, listen: false)
-  //                     .updateFood(
-  //                   context,
-  //                   acceptingUserId: user.uuid,
-  //                   acceptingUserName: user.name ?? "",
-  //                   foodId: food.id!,
-  //                 );
-  //                 Navigator.pop(context);
-  //               } catch (ex) {
-  //                 Navigator.pop(context);
-  //                 GeneralAlertDialog()
-  //                     .customAlertDialog(context, ex.toString());
-  //               }
-  //             },
-  //           )
-  //       ],
-  //     ),
-  //   );
-  // }
 
   Widget foodCard(BuildContext context, Food food) {
     final toShowButton =
         !Provider.of<UserProvider>(context, listen: false).user.isFoodDonor;
-    print("Food Card ${food.postedBy}");
 
     return InkWell(
       onTap: () => navigate(
@@ -503,20 +347,47 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ],
                             ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  "Unit Price",
-                                  style: Theme.of(context).textTheme.labelLarge,
-                                ),
-                                SizedBox(height: SizeConfig.height * 0.5),
-                                Text(
-                                  "Rs. ${food.price}",
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                              ],
-                            ),
+                            food.price != null
+                                ? Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        "Unit Price",
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .labelLarge,
+                                      ),
+                                      SizedBox(height: SizeConfig.height * 0.5),
+                                      Text(
+                                        "Rs. ${food.price}",
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium,
+                                      ),
+                                    ],
+                                  )
+                                : Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        "Food",
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .labelLarge,
+                                      ),
+                                      SizedBox(height: SizeConfig.height * 0.5),
+                                      Text(
+                                        "Free",
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium!
+                                            .copyWith(
+                                              color: Colors.green,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
                           ],
                         ),
                       ],
@@ -525,12 +396,26 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               SizedBox(height: SizeConfig.height * 2),
-              Text(
-                "Total Price: ${food.totalPrice}",
-                style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                      fontSize: 16,
-                      color: Colors.deepOrange,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  if (food.price != null)
+                    Text(
+                      "Total Price: ${food.totalPrice}",
+                      style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                            fontSize: 16,
+                            color: Colors.deepOrange,
+                          ),
                     ),
+                  const Spacer(),
+                  Expanded(
+                    child: Text(
+                      "Posted by: ${food.postedUserName}",
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                  ),
+                ],
               ),
               if (toShowButton || food.acceptingUserName != null)
                 SizedBox(height: SizeConfig.height * 2),
@@ -570,21 +455,29 @@ class _HomeScreenState extends State<HomeScreen> {
                 Padding(
                   padding: EdgeInsets.only(top: SizeConfig.height * 2),
                   child: GeneralElevatedButton(
-                    title: "Take Food",
+                    title: food.price != null ? "Paid Food" : "Take Food",
                     onPressed: () async {
                       try {
-                        GeneralAlertDialog().customLoadingDialog(context);
-                        final user =
-                            Provider.of<UserProvider>(context, listen: false)
-                                .user;
-                        await Provider.of<FoodProvider>(context, listen: false)
-                            .updateFood(
-                          context,
-                          acceptingUserId: user.uuid,
-                          acceptingUserName: user.name ?? "",
-                          foodId: food.id!,
-                        );
-                        Navigator.pop(context);
+                        if (food.price != null) {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const PaymentPage()));
+                        } else {
+                          GeneralAlertDialog().customLoadingDialog(context);
+                          final user =
+                              Provider.of<UserProvider>(context, listen: false)
+                                  .user;
+                          await Provider.of<FoodProvider>(context,
+                                  listen: false)
+                              .updateFood(
+                            context,
+                            acceptingUserId: user.uuid,
+                            acceptingUserName: user.name ?? "",
+                            foodId: food.id!,
+                          );
+                          Navigator.pop(context);
+                        }
                       } catch (ex) {
                         Navigator.pop(context);
                         GeneralAlertDialog()
