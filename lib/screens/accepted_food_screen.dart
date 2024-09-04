@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:provider/provider.dart';
 import 'package:save_food/constants/constants.dart';
 import 'package:save_food/models/food.dart';
 import 'package:save_food/providers/food_provider.dart';
@@ -10,7 +11,6 @@ import 'package:save_food/widgets/curved_body_widget.dart';
 import 'package:save_food/widgets/custom_card.dart';
 import 'package:save_food/widgets/general_alert_dialog.dart';
 import 'package:save_food/widgets/general_elevated_button.dart';
-import 'package:provider/provider.dart';
 
 class AcceptedFoodScreen extends StatelessWidget {
   AcceptedFoodScreen({Key? key}) : super(key: key);
@@ -133,14 +133,14 @@ class AcceptedFoodScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  "Unit Price",
+                  food.price != null ? "Unit Price" : "Food",
                   style: Theme.of(context).textTheme.labelLarge,
                 ),
                 SizedBox(
                   height: SizeConfig.height * .5,
                 ),
                 Text(
-                  "Rs. ${food.price}",
+                  food.price != null ? "Rs. ${food.price}" : "Free",
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],
@@ -150,13 +150,15 @@ class AcceptedFoodScreen extends StatelessWidget {
         SizedBox(
           height: SizeConfig.height * 2,
         ),
-        Text(
-          "Total Price: ${food.totalPrice}",
-          style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                fontSize: 16,
-                color: Colors.deepOrange,
-              ),
-        ),
+        food.price != null
+            ? Text(
+                "Total Price: ${food.totalPrice}",
+                style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                      fontSize: 16,
+                      color: Colors.deepOrange,
+                    ),
+              )
+            : SizedBox.shrink(),
         SizedBox(
           height: SizeConfig.height,
         ),
