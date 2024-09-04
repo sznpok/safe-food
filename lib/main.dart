@@ -5,6 +5,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:introduction_screen/introduction_screen.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:save_food/firebase_options.dart';
@@ -110,7 +111,7 @@ class MyApp extends StatelessWidget {
             title: 'Save Food',
             debugShowCheckedModeBanner: false,
             theme: lightTheme(context),
-            home: LoginScreen(canCheckBioMetric),
+            home: LoginScreen(canCheckBioMetric)
           );
         },
       ),
