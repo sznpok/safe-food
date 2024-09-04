@@ -253,7 +253,8 @@ class LoginScreen extends StatelessWidget {
       } else if (ex.code == "user-not-found") {
         message = "The user is not registered";
       }
-      await GeneralAlertDialog().customAlertDialog(context, message.toString());
+      await GeneralAlertDialog()
+          .customAlertDialog(context, "Authentication failed");
     } catch (ex) {
       Navigator.pop(context);
       await GeneralAlertDialog().customAlertDialog(context, ex.toString());

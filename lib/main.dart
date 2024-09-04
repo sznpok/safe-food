@@ -31,6 +31,8 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  /* Stripe.publishableKey = StripeKey.stripePublishableKey;
+  await Stripe.instance.applySettings();*/
   final canCheckBioMetric = await hasBiometrics();
   runApp(
     MyApp(canCheckBioMetric),
