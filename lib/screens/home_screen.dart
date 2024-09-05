@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -13,7 +12,6 @@ import 'package:save_food/screens/payment_page.dart';
 import 'package:save_food/widgets/general_drop_down.dart';
 import 'package:save_food/widgets/general_elevated_button.dart';
 import 'package:save_food/widgets/general_text_field.dart';
-
 import '/providers/user_provider.dart';
 import '/utils/navigate.dart';
 import '/utils/size_config.dart';
@@ -41,455 +39,517 @@ class _HomeScreenState extends State<HomeScreen> {
     stream = Provider.of<FoodProvider>(context, listen: false).fetchFoods();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    print("Profile data ${profileData.uuid}");
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Welcome Home!"),
-        actions: profileData.isFoodDonor
-            ? null
-            : [
-                IconButton(
-                  padding: EdgeInsets.zero,
-                  icon: const Icon(Icons.search_rounded),
-                  onPressed: () async {
-                    await showModalBottomSheet(
-                      context: context,
-                      builder: (context) => Padding(
-                        padding: EdgeInsets.only(
-                          left: basePadding.left,
-                          right: basePadding.right,
-                          top: basePadding.top,
-                          bottom: MediaQuery.of(context).viewInsets.bottom,
-                        ),
-                        child: SingleChildScrollView(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Text("Enter your search parameters"),
-                              SizedBox(
-                                height: SizeConfig.height * 2,
-                              ),
-                              GeneralTextField(
-                                title: "Search",
-                                controller: searchController,
-                                textInputType: TextInputType.text,
-                                textInputAction: TextInputAction.search,
-                                validate: (v) {
-                                  return null;
-                                },
-                                onFieldSubmitted: (_) {},
-                              ),
-                              SizedBox(
-                                height: SizeConfig.height * 3,
-                              ),
-                              GeneralElevatedButton(
-                                title: "Submit",
-                                onPressed: () {
-                                  if (searchController.text.trim().isEmpty) {
-                                    stream = Provider.of<FoodProvider>(context,
-                                            listen: false)
-                                        .fetchFoods();
-                                  } else {
-                                    stream = Provider.of<FoodProvider>(context,
-                                            listen: false)
-                                        .fetchSearchedFoods(
-                                      whereId: FoodConstant.title,
-                                      whereValue: searchController.text.trim(),
-                                    );
-                                  }
-                                  Navigator.pop(context);
-                                  setState(() {});
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                )
-              ],
+  // Build AppBar with enhanced design
+  AppBar _buildAppBar() {
+    return AppBar(
+      title: const Text(
+        "Welcome Home!",
+        style: TextStyle(fontWeight: FontWeight.bold),
       ),
-      body: CurvedBodyWidget(
-        widget: StreamBuilder<QuerySnapshot>(
-          stream: stream,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-            }
-            if (snapshot.hasData) {
-              if (snapshot.data == null) {
-                return const Center(
-                  child: Text("No Food posts"),
-                );
-              }
+      centerTitle: true, // Center the title
+      backgroundColor: Theme.of(context).primaryColor,
+      elevation: 0,
+      actions: profileData.isFoodDonor ? null : [_buildSearchButton()],
+    );
+  }
 
-              return SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        SizedBox(
-                          width: SizeConfig.width * 55,
-                          child: Text(
-                            profileData.isFoodDonor &&
-                                    filterController.text.trim().isNotEmpty
-                                ? "${filterController.text} Foods"
-                                : searchController.text.trim().isNotEmpty
-                                    ? "Foods based on ${searchController.text}"
-                                    : "Foods",
-                            style: Theme.of(context).textTheme.titleSmall,
-                          ),
-                        ),
-                        if (profileData.isFoodDonor)
-                          InkWell(
-                            onTap: () async {
-                              await showModalBottomSheet(
-                                context: context,
-                                builder: (context) => Padding(
-                                  padding: EdgeInsets.only(
-                                    left: basePadding.left,
-                                    right: basePadding.right,
-                                    top: basePadding.top,
-                                    bottom: MediaQuery.of(context)
-                                        .viewInsets
-                                        .bottom,
-                                  ),
-                                  child: SingleChildScrollView(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        const Text("Filter Option"),
-                                        SizedBox(
-                                          height: SizeConfig.height * 2,
-                                        ),
-                                        SizedBox(
-                                          child: GeneralDropDown(
-                                            filterController,
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          height: SizeConfig.height * 3,
-                                        ),
-                                        GeneralElevatedButton(
-                                          title: "Submit",
-                                          onPressed: () {
-                                            if (filterController.text.trim() ==
-                                                FilterOptionConstant
-                                                    .filterList[0]) {
-                                              stream =
-                                                  Provider.of<FoodProvider>(
-                                                          context,
-                                                          listen: false)
-                                                      .fetchFoods();
-                                            } else {
-                                              stream =
-                                                  Provider.of<FoodProvider>(
-                                                          context,
-                                                          listen: false)
-                                                      .fetchFoods(
-                                                whereValue: false,
-                                              );
-                                            }
-                                            Navigator.pop(context);
-                                            setState(() {});
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                            child: Chip(
-                              label: const Text("Filter"),
-                              avatar: const Icon(
-                                Icons.sort_outlined,
-                                color: Colors.black,
-                              ),
-                              backgroundColor:
-                                  Theme.of(context).primaryColor.withOpacity(
-                                        .8,
-                                      ),
-                            ),
-                          ),
-                        if (searchController.text.trim().isNotEmpty)
-                          InkWell(
-                            onTap: () {
-                              stream = Provider.of<FoodProvider>(context,
-                                      listen: false)
-                                  .fetchFoods();
-                              searchController.clear();
-                              setState(() {});
-                            },
-                            child: Chip(
-                              avatar: const Icon(
-                                Icons.clear_outlined,
-                                color: Colors.black,
-                              ),
-                              label: const Text(
-                                "Clear Search",
-                              ),
-                              backgroundColor: Theme.of(context)
-                                  .primaryColor
-                                  .withOpacity(.8),
-                            ),
-                          ),
-                      ],
-                    ),
-                    SizedBox(
-                      height: SizeConfig.height,
-                    ),
-                    ListView.separated(
-                      separatorBuilder: (context, index) => SizedBox(
-                        height: SizeConfig.height * 2,
-                      ),
-                      itemCount: snapshot.data!.docs.length,
-                      itemBuilder: (context, index) {
-                        final food = Food.fromJson(
-                            snapshot.data!.docs[index].data() as Map,
-                            snapshot.data!.docs[index].id);
-                        return foodCard(context, food);
-                      },
-                      shrinkWrap: true,
-                      primary: false,
-                    )
-                  ],
-                ),
-              );
-            }
-            return const Center(
-              child: Text("Cant load data"),
-            );
-          },
+  // Build Search Button with Icon
+  IconButton _buildSearchButton() {
+    return IconButton(
+      padding: EdgeInsets.zero,
+      icon: const Icon(Icons.search_rounded),
+      onPressed: () => _showSearchModal(),
+    );
+  }
+
+  // Show Search Modal
+  Future<void> _showSearchModal() async {
+    await showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          left: basePadding.left,
+          right: basePadding.right,
+          top: basePadding.top,
+          bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
+        child: _buildSearchForm(),
       ),
     );
   }
 
-  Widget foodCard(BuildContext context, Food food) {
-    final toShowButton =
-        !Provider.of<UserProvider>(context, listen: false).user.isFoodDonor;
+  // Build Search Form
+  Widget _buildSearchForm() {
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            "Enter your search parameters",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: SizeConfig.height * 2),
+          GeneralTextField(
+            title: "Search",
+            controller: searchController,
+            textInputType: TextInputType.text,
+            textInputAction: TextInputAction.search,
+            validate: (v) => null,
+            onFieldSubmitted: (_) {},
+          ),
+          SizedBox(height: SizeConfig.height * 3),
+          GeneralElevatedButton(
+            title: "Submit",
+            onPressed: _onSearchSubmit,
+          ),
+        ],
+      ),
+    );
+  }
 
+  // Handle Search Submit
+  void _onSearchSubmit() {
+    if (searchController.text.trim().isEmpty) {
+      stream = Provider.of<FoodProvider>(context, listen: false).fetchFoods();
+    } else {
+      stream = Provider.of<FoodProvider>(context, listen: false).fetchSearchedFoods(
+        whereId: FoodConstant.title,
+        whereValue: searchController.text.trim(),
+      );
+    }
+    Navigator.pop(context);
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: _buildAppBar(),
+      body: CurvedBodyWidget(
+        widget: _buildFoodStream(),
+      ),
+    );
+  }
+
+  // StreamBuilder to show food posts
+  StreamBuilder<QuerySnapshot> _buildFoodStream() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: stream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasData && snapshot.data != null) {
+          return _buildFoodList(snapshot);
+        }
+        return const Center(child: Text("Can't load data"));
+      },
+    );
+  }
+
+  // Build Food List
+  Widget _buildFoodList(AsyncSnapshot<QuerySnapshot> snapshot) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildFilterAndSearchRow(),
+          SizedBox(height: SizeConfig.height),
+          ListView.separated(
+            separatorBuilder: (context, index) => SizedBox(height: SizeConfig.height * 2),
+            itemCount: snapshot.data!.docs.length,
+            itemBuilder: (context, index) {
+              final food = Food.fromJson(snapshot.data!.docs[index].data() as Map, snapshot.data!.docs[index].id);
+              return foodCard(context, food);
+            },
+            shrinkWrap: true,
+            primary: false,
+          )
+        ],
+      ),
+    );
+  }
+
+  // Build Filter and Search Row
+  Widget _buildFilterAndSearchRow() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.width * 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          SizedBox(
+            width: SizeConfig.width * 55,
+            child: Text(
+              profileData.isFoodDonor && filterController.text.trim().isNotEmpty
+                  ? "${filterController.text} Foods"
+                  : searchController.text.trim().isNotEmpty
+                      ? "Foods based on ${searchController.text}"
+                      : "Foods",
+              style: Theme.of(context).textTheme.titleSmall!.copyWith(fontWeight: FontWeight.bold),
+            ),
+          ),
+          if (profileData.isFoodDonor) _buildFilterChip(),
+          if (searchController.text.trim().isNotEmpty) _buildClearSearchChip(),
+        ],
+      ),
+    );
+  }
+
+  // Build Filter Chip with Icon
+  Widget _buildFilterChip() {
     return InkWell(
+      onTap: _showFilterModal,
+      child: Chip(
+        label: const Text("Filter"),
+        avatar: const Icon(Icons.sort_outlined, color: Colors.black),
+        backgroundColor: Theme.of(context).primaryColor.withOpacity(.8),
+      ),
+    );
+  }
+
+  // Show Filter Modal
+  Future<void> _showFilterModal() async {
+    await showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          left: basePadding.left,
+          right: basePadding.right,
+          top: basePadding.top,
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: _buildFilterForm(),
+      ),
+    );
+  }
+
+  // Build Filter Form
+  Widget _buildFilterForm() {
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text("Filter Option", style: TextStyle(fontWeight: FontWeight.bold)),
+          SizedBox(height: SizeConfig.height * 2),
+          GeneralDropDown(filterController),
+          SizedBox(height: SizeConfig.height * 3),
+          GeneralElevatedButton(
+            title: "Submit",
+            onPressed: _onFilterSubmit,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Handle Filter Submit
+  void _onFilterSubmit() {
+    if (filterController.text.trim() == FilterOptionConstant.filterList[0]) {
+      stream = Provider.of<FoodProvider>(context, listen: false).fetchFoods();
+    } else {
+      stream = Provider.of<FoodProvider>(context, listen: false).fetchFoods(whereValue: false);
+    }
+    Navigator.pop(context);
+    setState(() {});
+  }
+
+  // Build Clear Search Chip with Icon
+  Widget _buildClearSearchChip() {
+    return InkWell(
+      onTap: _clearSearch,
+      child: Chip(
+        avatar: const Icon(Icons.clear_outlined, color: Colors.black),
+        label: const Text("Clear Search"),
+        backgroundColor: Theme.of(context).primaryColor.withOpacity(.8),
+      ),
+    );
+  }
+
+  // Clear Search
+  void _clearSearch() {
+    stream = Provider.of<FoodProvider>(context, listen: false).fetchFoods();
+    searchController.clear();
+    setState(() {});
+  }
+
+  // Food Card Widget
+  Widget foodCard(BuildContext context, Food food) {
+    final toShowButton = !Provider.of<UserProvider>(context, listen: false).user.isFoodDonor;
+        return InkWell(
       onTap: () => navigate(
         context,
         FoodDetailScreen(food: food, toShowButton: toShowButton),
       ),
       child: Card(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.0),
+          borderRadius: BorderRadius.circular(16.0),
         ),
-        elevation: 4,
+        elevation: 5,
         margin: EdgeInsets.symmetric(
-          horizontal: SizeConfig.width * 3,
-          vertical: SizeConfig.height * 1,
+          horizontal: SizeConfig.width * 4,
+          vertical: SizeConfig.height * 2, // Adjusted for better spacing
         ),
         child: Padding(
           padding: EdgeInsets.all(SizeConfig.width * 4),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12.0),
-                    child: Image.memory(
-                      base64Decode(food.image),
-                      fit: BoxFit.cover,
-                      height: SizeConfig.height * 15,
-                      width: SizeConfig.width * 30,
-                    ),
-                  ),
-                  SizedBox(width: SizeConfig.width * 4),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          food.name,
-                          style:
-                              Theme.of(context).textTheme.titleMedium!.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                        ),
-                        SizedBox(height: SizeConfig.height * 1),
-                        Text(
-                          food.description,
-                          style: Theme.of(context).textTheme.bodySmall,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        SizedBox(height: SizeConfig.height * 2),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Available Quantity",
-                                  style: Theme.of(context).textTheme.labelLarge,
-                                ),
-                                SizedBox(height: SizeConfig.height * 0.5),
-                                Text(
-                                  food.quantity.toString(),
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                              ],
-                            ),
-                            food.price != null
-                                ? Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Text(
-                                        "Unit Price",
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .labelLarge,
-                                      ),
-                                      SizedBox(height: SizeConfig.height * 0.5),
-                                      Text(
-                                        "Rs. ${food.price}",
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium,
-                                      ),
-                                    ],
-                                  )
-                                : Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Text(
-                                        "Food",
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .labelLarge,
-                                      ),
-                                      SizedBox(height: SizeConfig.height * 0.5),
-                                      Text(
-                                        "Free",
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium!
-                                            .copyWith(
-                                              color: Colors.green,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: SizeConfig.height * 2),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  if (food.price != null)
-                    Text(
-                      "Total Price: ${food.totalPrice}",
-                      style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                            fontSize: 16,
-                            color: Colors.deepOrange,
-                          ),
-                    ),
-                  const Spacer(),
-                  Expanded(
-                    child: Text(
-                      "Posted by: ${food.postedUserName}",
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                  ),
-                ],
-              ),
-              if (toShowButton || food.acceptingUserName != null)
-                SizedBox(height: SizeConfig.height * 2),
-              if (food.acceptingUserName != null)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        "Accepted By: ${food.acceptingUserName!}",
-                        style: Theme.of(context).textTheme.bodyMedium,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    if (food.rating != null)
-                      Row(
-                        children: [
-                          Text(
-                            "Rating: ",
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                          RatingBarIndicator(
-                            rating: food.rating!,
-                            itemBuilder: (context, index) => const Icon(
-                              Icons.star,
-                              color: Colors.orange,
-                            ),
-                            itemCount: 5,
-                            itemSize: SizeConfig.width * 4,
-                            direction: Axis.horizontal,
-                          ),
-                        ],
-                      ),
-                  ],
-                ),
-              if (toShowButton)
-                Padding(
-                  padding: EdgeInsets.only(top: SizeConfig.height * 2),
-                  child: GeneralElevatedButton(
-                    title: food.price != null ? "Paid Food" : "Take Food",
-                    onPressed: () async {
-                      try {
-                        if (food.price != null) {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const PaymentPage()));
-                        } else {
-                          GeneralAlertDialog().customLoadingDialog(context);
-                          final user =
-                              Provider.of<UserProvider>(context, listen: false)
-                                  .user;
-                          await Provider.of<FoodProvider>(context,
-                                  listen: false)
-                              .updateFood(
-                            context,
-                            acceptingUserId: user.uuid,
-                            acceptingUserName: user.name ?? "",
-                            foodId: food.id!,
-                          );
-                          Navigator.pop(context);
-                        }
-                      } catch (ex) {
-                        Navigator.pop(context);
-                        GeneralAlertDialog()
-                            .customAlertDialog(context, ex.toString());
-                      }
-                    },
-                  ),
-                ),
-            ],
-          ),
+          child: _buildFoodCardDetails(context, food, toShowButton),
         ),
       ),
     );
   }
+
+  // Build Food Card Details
+  Widget _buildFoodCardDetails(BuildContext context, Food food, bool toShowButton) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildFoodImageRow(context, food),
+        SizedBox(height: SizeConfig.height * 2), // Adjusted spacing
+        _buildFoodPriceRow(context, food),
+        if (toShowButton || food.acceptingUserName != null) SizedBox(height: SizeConfig.height * 2),
+        if (food.acceptingUserName != null) _buildAcceptedRow(context, food),
+        if (toShowButton) _buildActionButton(context, food),
+      ],
+    );
+  }
+
+  // Build Food Image Row
+  Widget _buildFoodImageRow(BuildContext context, Food food) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildFoodImage(food),
+        SizedBox(width: SizeConfig.width * 3), // Adjusted spacing
+        _buildFoodDetailsColumn(context, food),
+      ],
+    );
+  }
+
+  // Build Food Image
+  Widget _buildFoodImage(Food food) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16.0),
+      child: Image.memory(
+        base64Decode(food.image),
+        fit: BoxFit.cover,
+        height: SizeConfig.height * 15,
+        width: SizeConfig.width * 30,
+      ),
+    );
+  }
+
+  // Build Food Details Column
+  Widget _buildFoodDetailsColumn(BuildContext context, Food food) {
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            food.name,
+            style: Theme.of(context).textTheme.titleLarge!.copyWith(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
+          ),
+          SizedBox(height: SizeConfig.height * 0.5), // Adjusted spacing
+          Text(
+            food.description,
+            style: Theme.of(context).textTheme.titleMedium!.copyWith(
+              fontSize: 14,
+              color: Colors.grey[700],
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          SizedBox(height: SizeConfig.height * 2), // Adjusted spacing
+          _buildQuantityAndPriceRow(context, food),
+        ],
+      ),
+    );
+  }
+
+  // Build Quantity and Price Row
+  Widget _buildQuantityAndPriceRow(BuildContext context, Food food) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildDetailLabel(context, "Quantity"),
+            Text(
+              food.quantity.toString(),
+              style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+        _buildUnitPrice(context, food),
+      ],
+    );
+  }
+
+  // Build Unit Price
+  Widget _buildUnitPrice(BuildContext context, Food food) {
+    return food.price != null
+        ? Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              _buildDetailLabel(context, "Unit Price"),
+              Text(
+                "AUD. ${food.price}",
+                style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          )
+        : Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              _buildDetailLabel(context, "Food"),
+              Text(
+                "Free",
+                style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                  color: Colors.green,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          );
+  }
+
+  // Build Detail Label
+  Widget _buildDetailLabel(BuildContext context, String label) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: SizeConfig.height * 0.5),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.titleMedium!.copyWith(
+          fontWeight: FontWeight.bold,
+          color: Colors.grey[700],
+        ),
+      ),
+    );
+  }
+
+  // Build Food Price Row
+  Widget _buildFoodPriceRow(BuildContext context, Food food) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        if (food.price != null)
+          Text(
+            "Total Price: Rs. ${food.totalPrice}",
+            style: Theme.of(context).textTheme.titleLarge!.copyWith(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+        const Spacer(),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            _buildDetailLabel(context, "Posted By"),
+            Text(
+              food.postedUserName,
+              style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // Build Accepted By Row
+  Widget _buildAcceptedRow(BuildContext context, Food food) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Text(
+            "Accepted By: ${food.acceptingUserName!}",
+            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+              fontWeight: FontWeight.w500,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        if (food.rating != null) _buildRatingRow(context, food),
+      ],
+    );
+  }
+
+  // Build Rating Row
+  Widget _buildRatingRow(BuildContext context, Food food) {
+    return Row(
+      children: [
+        Text(
+          "Rating: ",
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        RatingBarIndicator(
+          rating: food.rating!,
+          itemBuilder: (context, index) => const Icon(
+            Icons.star,
+            color: Colors.orange,
+          ),
+          itemCount: 5,
+          itemSize: SizeConfig.width * 4,
+          direction: Axis.horizontal,
+        ),
+      ],
+    );
+  }
+
+  // Build Action Button
+  Widget _buildActionButton(BuildContext context, Food food) {
+    return Padding(
+      padding: EdgeInsets.only(top: SizeConfig.height * 2),
+      child: GeneralElevatedButton(
+        title: food.price != null ? "Paid Food" : "Take Food",
+        onPressed: () => _handleActionButtonPress(context, food),
+      ),
+    );
+  }
+
+  // Handle Action Button Press
+  Future<void> _handleActionButtonPress(BuildContext context, Food food) async {
+    try {
+      if (food.price != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => StripePaymentScreen(foodId: food.id!),
+          ),
+        );
+      } else {
+        GeneralAlertDialog().customLoadingDialog(context);
+        final user = Provider.of<UserProvider>(context, listen: false).user;
+        await Provider.of<FoodProvider>(context, listen: false).updateFood(
+          context,
+          acceptingUserId: user.uuid,
+          acceptingUserName: user.name ?? "",
+          foodId: food.id!,
+        );
+        Navigator.pop(context);
+      }
+    } catch (ex) {
+      Navigator.pop(context);
+      GeneralAlertDialog().customAlertDialog(context, ex.toString());
+    }
+  }
 }
+
+
