@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -12,6 +13,7 @@ import 'package:save_food/screens/payment_page.dart';
 import 'package:save_food/widgets/general_drop_down.dart';
 import 'package:save_food/widgets/general_elevated_button.dart';
 import 'package:save_food/widgets/general_text_field.dart';
+
 import '/providers/user_provider.dart';
 import '/utils/navigate.dart';
 import '/utils/size_config.dart';
@@ -46,7 +48,8 @@ class _HomeScreenState extends State<HomeScreen> {
         "Welcome Home!",
         style: TextStyle(fontWeight: FontWeight.bold),
       ),
-      centerTitle: true, // Center the title
+      centerTitle: true,
+      // Center the title
       backgroundColor: Theme.of(context).primaryColor,
       elevation: 0,
       actions: profileData.isFoodDonor ? null : [_buildSearchButton()],
@@ -115,7 +118,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (searchController.text.trim().isEmpty) {
       stream = Provider.of<FoodProvider>(context, listen: false).fetchFoods();
     } else {
-      stream = Provider.of<FoodProvider>(context, listen: false).fetchSearchedFoods(
+      stream =
+          Provider.of<FoodProvider>(context, listen: false).fetchSearchedFoods(
         whereId: FoodConstant.title,
         whereValue: searchController.text.trim(),
       );
@@ -159,10 +163,13 @@ class _HomeScreenState extends State<HomeScreen> {
           _buildFilterAndSearchRow(),
           SizedBox(height: SizeConfig.height),
           ListView.separated(
-            separatorBuilder: (context, index) => SizedBox(height: SizeConfig.height * 2),
+            separatorBuilder: (context, index) =>
+                SizedBox(height: SizeConfig.height * 2),
             itemCount: snapshot.data!.docs.length,
             itemBuilder: (context, index) {
-              final food = Food.fromJson(snapshot.data!.docs[index].data() as Map, snapshot.data!.docs[index].id);
+              final food = Food.fromJson(
+                  snapshot.data!.docs[index].data() as Map,
+                  snapshot.data!.docs[index].id);
               return foodCard(context, food);
             },
             shrinkWrap: true,
@@ -188,7 +195,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   : searchController.text.trim().isNotEmpty
                       ? "Foods based on ${searchController.text}"
                       : "Foods",
-              style: Theme.of(context).textTheme.titleSmall!.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleSmall!
+                  .copyWith(fontWeight: FontWeight.bold),
             ),
           ),
           if (profileData.isFoodDonor) _buildFilterChip(),
@@ -236,7 +246,8 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("Filter Option", style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text("Filter Option",
+              style: TextStyle(fontWeight: FontWeight.bold)),
           SizedBox(height: SizeConfig.height * 2),
           GeneralDropDown(filterController),
           SizedBox(height: SizeConfig.height * 3),
@@ -254,7 +265,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (filterController.text.trim() == FilterOptionConstant.filterList[0]) {
       stream = Provider.of<FoodProvider>(context, listen: false).fetchFoods();
     } else {
-      stream = Provider.of<FoodProvider>(context, listen: false).fetchFoods(whereValue: false);
+      stream = Provider.of<FoodProvider>(context, listen: false)
+          .fetchFoods(whereValue: false);
     }
     Navigator.pop(context);
     setState(() {});
@@ -281,8 +293,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Food Card Widget
   Widget foodCard(BuildContext context, Food food) {
-    final toShowButton = !Provider.of<UserProvider>(context, listen: false).user.isFoodDonor;
-        return InkWell(
+    final toShowButton =
+        !Provider.of<UserProvider>(context, listen: false).user.isFoodDonor;
+    return InkWell(
       onTap: () => navigate(
         context,
         FoodDetailScreen(food: food, toShowButton: toShowButton),
@@ -305,14 +318,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // Build Food Card Details
-  Widget _buildFoodCardDetails(BuildContext context, Food food, bool toShowButton) {
+  Widget _buildFoodCardDetails(
+      BuildContext context, Food food, bool toShowButton) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildFoodImageRow(context, food),
         SizedBox(height: SizeConfig.height * 2), // Adjusted spacing
         _buildFoodPriceRow(context, food),
-        if (toShowButton || food.acceptingUserName != null) SizedBox(height: SizeConfig.height * 2),
+        if (toShowButton || food.acceptingUserName != null)
+          SizedBox(height: SizeConfig.height * 2),
         if (food.acceptingUserName != null) _buildAcceptedRow(context, food),
         if (toShowButton) _buildActionButton(context, food),
       ],
@@ -353,17 +368,17 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(
             food.name,
             style: Theme.of(context).textTheme.titleLarge!.copyWith(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-            ),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
           ),
           SizedBox(height: SizeConfig.height * 0.5), // Adjusted spacing
           Text(
             food.description,
             style: Theme.of(context).textTheme.titleMedium!.copyWith(
-              fontSize: 14,
-              color: Colors.grey[700],
-            ),
+                  fontSize: 14,
+                  color: Colors.grey[700],
+                ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -386,8 +401,8 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               food.quantity.toString(),
               style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
+                    fontWeight: FontWeight.w500,
+                  ),
             ),
           ],
         ),
@@ -406,8 +421,8 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 "AUD. ${food.price}",
                 style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                  fontWeight: FontWeight.w500,
-                ),
+                      fontWeight: FontWeight.w500,
+                    ),
               ),
             ],
           )
@@ -418,9 +433,9 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 "Free",
                 style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                  color: Colors.green,
-                  fontWeight: FontWeight.bold,
-                ),
+                      color: Colors.green,
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
             ],
           );
@@ -433,9 +448,9 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Text(
         label,
         style: Theme.of(context).textTheme.titleMedium!.copyWith(
-          fontWeight: FontWeight.bold,
-          color: Colors.grey[700],
-        ),
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[700],
+            ),
       ),
     );
   }
@@ -450,9 +465,9 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(
             "Total Price: Rs. ${food.totalPrice}",
             style: Theme.of(context).textTheme.titleLarge!.copyWith(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
           ),
         const Spacer(),
         Column(
@@ -462,9 +477,9 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               food.postedUserName,
               style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                fontWeight: FontWeight.w500,
-                fontSize: 14,
-              ),
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                  ),
             ),
           ],
         ),
@@ -481,8 +496,8 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Text(
             "Accepted By: ${food.acceptingUserName!}",
             style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-              fontWeight: FontWeight.w500,
-            ),
+                  fontWeight: FontWeight.w500,
+                ),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -531,7 +546,8 @@ class _HomeScreenState extends State<HomeScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => StripePaymentScreen(foodId: food.id!),
+            builder: (context) => StripePaymentScreen(
+                foodId: food.id!, totalPrice: food.totalPrice.toString()),
           ),
         );
       } else {
@@ -551,5 +567,3 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 }
-
-

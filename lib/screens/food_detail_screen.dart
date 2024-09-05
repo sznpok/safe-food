@@ -8,6 +8,7 @@ import 'package:save_food/models/food.dart';
 import 'package:save_food/providers/food_provider.dart';
 import 'package:save_food/providers/user_provider.dart';
 import 'package:save_food/screens/map_screen.dart';
+import 'package:save_food/screens/payment_page.dart';
 import 'package:save_food/utils/size_config.dart';
 import 'package:save_food/widgets/curved_body_widget.dart';
 import 'package:save_food/widgets/custom_card.dart';
@@ -169,22 +170,35 @@ class FoodDetailScreen extends StatelessWidget {
               child: GeneralElevatedButton(
                 title: food.price != null ? "Paid Food" : "Take Food",
                 onPressed: () async {
-                  try {
-                    GeneralAlertDialog().customLoadingDialog(context);
-                    final user =
-                        Provider.of<UserProvider>(context, listen: false).user;
-                    await Provider.of<FoodProvider>(context, listen: false)
-                        .updateFood(
+                  if (food.price != null) {
+                    Navigator.push(
                       context,
-                      acceptingUserId: user.uuid,
-                      acceptingUserName: user.name ?? "",
-                      foodId: food.id!,
+                      MaterialPageRoute(
+                        builder: (context) => StripePaymentScreen(
+                            foodId: food.id!,
+                            totalPrice: food.totalPrice.toString()),
+                      ),
                     );
-                    Navigator.pop(context);
-                  } catch (ex) {
-                    Navigator.pop(context);
-                    GeneralAlertDialog()
-                        .customAlertDialog(context, ex.toString());
+                    return;
+                  } else {
+                    try {
+                      GeneralAlertDialog().customLoadingDialog(context);
+                      final user =
+                          Provider.of<UserProvider>(context, listen: false)
+                              .user;
+                      await Provider.of<FoodProvider>(context, listen: false)
+                          .updateFood(
+                        context,
+                        acceptingUserId: user.uuid,
+                        acceptingUserName: user.name ?? "",
+                        foodId: food.id!,
+                      );
+                      Navigator.pop(context);
+                    } catch (ex) {
+                      Navigator.pop(context);
+                      GeneralAlertDialog()
+                          .customAlertDialog(context, ex.toString());
+                    }
                   }
                 },
               ),
