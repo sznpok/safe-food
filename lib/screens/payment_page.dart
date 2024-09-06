@@ -46,8 +46,9 @@ class _StripePaymentScreenState extends State<StripePaymentScreen> {
   Future<void> makePayment() async {
     print("Making payment ${widget.totalPrice}");
     String totalPrice = double.parse(widget.totalPrice).toInt().toString();
+    String price = (double.parse(widget.totalPrice) * 100).toInt().toString();
     try {
-      paymentIntent = await createPaymentIntent(totalPrice, 'AUD');
+      paymentIntent = await createPaymentIntent(price, 'AUD');
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
           paymentIntentClientSecret: paymentIntent!['client_secret'],
