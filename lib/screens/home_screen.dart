@@ -463,7 +463,7 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         if (food.price != null)
           Text(
-            "Total Price: Rs. ${food.totalPrice}",
+            "Total Price: AUD ${food.totalPrice}",
             style: Theme.of(context).textTheme.titleLarge!.copyWith(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,

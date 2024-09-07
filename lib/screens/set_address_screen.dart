@@ -15,7 +15,7 @@ class SetAddressScreen extends StatefulWidget {
 
 class _SetAddressScreenState extends State<SetAddressScreen> {
   CameraPosition _kGooglePlex = const CameraPosition(
-    target: LatLng(27.6728, 85.3138),
+    target: LatLng(-33.8688, 151.2093),
     zoom: 14.4746,
   );
 
