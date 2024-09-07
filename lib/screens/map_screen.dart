@@ -38,8 +38,8 @@ class _MapScreenState extends State<MapScreen> {
     super.initState();
     getLocation();
 
-    _initialCameraPosition = const CameraPosition(
-      target: LatLng(27.7172, 85.3240),
+    _initialCameraPosition =  CameraPosition(
+      target: LatLng(widget.latitude,widget.longitude ),
       zoom: 12.5,
     );
     positionCenter = LatLng(

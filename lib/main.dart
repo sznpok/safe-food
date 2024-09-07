@@ -6,14 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
-import 'package:introduction_screen/introduction_screen.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:save_food/firebase_options.dart';
 import 'package:save_food/providers/food_provider.dart';
-import 'package:save_food/providers/food_truck_provider.dart';
 import 'package:save_food/utils/stripe_key.dart';
-
 import '/constants/constants.dart';
 import '/providers/user_provider.dart';
 import '/screens/login_screen.dart';
@@ -104,9 +101,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => FoodProvider(),
         ),
-        ChangeNotifierProvider(
-          create: (_) => FoodTruckProvider(),
-        ),
+       
       ],
       child: LayoutBuilder(
         builder: (context, constraints) {
