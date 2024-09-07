@@ -9,7 +9,6 @@ import 'package:save_food/models/food.dart';
 import 'package:save_food/models/user.dart';
 import 'package:save_food/providers/food_provider.dart';
 import 'package:save_food/screens/food_detail_screen.dart';
-import 'package:save_food/screens/payment_page.dart';
 import 'package:save_food/widgets/general_drop_down.dart';
 import 'package:save_food/widgets/general_elevated_button.dart';
 import 'package:save_food/widgets/general_text_field.dart';
@@ -532,9 +531,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildActionButton(BuildContext context, Food food) {
     return Padding(
       padding: EdgeInsets.only(top: SizeConfig.height * 2),
-      child: GeneralElevatedButton(
-        title: food.price != null ? "Paid Food" : "Take Food",
-        onPressed: () => _handleActionButtonPress(context, food),
+      child: Text(
+        food.price != null ? "Paid Food" : "Take Food",
+        style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+              color: food.price != null ? Colors.black : Colors.green,
+              fontWeight:
+                  food.price != null ? FontWeight.bold : FontWeight.w500,
+            ),
       ),
     );
   }
@@ -543,13 +546,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _handleActionButtonPress(BuildContext context, Food food) async {
     try {
       if (food.price != null) {
-        Navigator.push(
+        /* Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => StripePaymentScreen(
                 foodId: food.id!, totalPrice: food.totalPrice.toString()),
           ),
-        );
+        );*/
       } else {
         GeneralAlertDialog().customLoadingDialog(context);
         final user = Provider.of<UserProvider>(context, listen: false).user;

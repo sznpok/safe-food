@@ -171,14 +171,8 @@ class FoodDetailScreen extends StatelessWidget {
                 title: food.price != null ? "Paid Food" : "Take Food",
                 onPressed: () async {
                   if (food.price != null) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => StripePaymentScreen(
-                            foodId: food.id!,
-                            totalPrice: food.totalPrice.toString()),
-                      ),
-                    );
+                    StripePayment().makePayment(
+                        context, food.totalPrice.toString(), food.id!);
                     return;
                   } else {
                     try {

@@ -10,43 +10,11 @@ import 'package:save_food/utils/stripe_key.dart';
 
 import 'navigation_screen.dart';
 
-class StripePaymentScreen extends StatefulWidget {
-  final String foodId;
-  final String totalPrice;
-
-  const StripePaymentScreen(
-      {Key? key, required this.foodId, required this.totalPrice})
-      : super(key: key);
-
-  @override
-  State<StripePaymentScreen> createState() => _StripePaymentScreenState();
-}
-
-class _StripePaymentScreenState extends State<StripePaymentScreen> {
+class StripePayment {
   Map<String, dynamic>? paymentIntent;
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text('Stripe Payment'),
-      ),
-      body: Center(
-        child: ElevatedButton(
-          child: const Text('Make Payment'),
-          onPressed: () async {
-            await makePayment();
-          },
-        ),
-      ),
-    );
-  }
-
-  Future<void> makePayment() async {
-    print("Making payment ${widget.totalPrice}");
-    String totalPrice = double.parse(widget.totalPrice).toInt().toString();
-    String price = (double.parse(widget.totalPrice) * 100).toInt().toString();
+  Future<void> makePayment(context, totalPrice, foodId) async {
+    String price = (double.parse(totalPrice) * 100).toInt().toString();
     try {
       paymentIntent = await createPaymentIntent(price, 'AUD');
       await Stripe.instance.initPaymentSheet(
@@ -58,19 +26,19 @@ class _StripePaymentScreenState extends State<StripePaymentScreen> {
         ),
       );
       // Display payment sheet
-      await displayPaymentSheet();
+      await displayPaymentSheet(context, foodId);
     } catch (e) {
       print("Exception during payment: $e");
     }
   }
 
-  Future<void> displayPaymentSheet() async {
+  Future<void> displayPaymentSheet(context, foodId) async {
     try {
       // Present the payment sheet to the user
       await Stripe.instance.presentPaymentSheet();
 
       // If payment is successful, update Firestore
-      await updateFirestoreAfterPayment();
+      await updateFirestoreAfterPayment(context, foodId);
 
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
@@ -94,7 +62,7 @@ class _StripePaymentScreenState extends State<StripePaymentScreen> {
     }
   }
 
-  Future<void> updateFirestoreAfterPayment() async {
+  Future<void> updateFirestoreAfterPayment(context, foodId) async {
     try {
       // Get the current user information
       final user = Provider.of<UserProvider>(context, listen: false).user;
@@ -104,7 +72,7 @@ class _StripePaymentScreenState extends State<StripePaymentScreen> {
         context,
         acceptingUserId: user.uuid, // The current user's ID
         acceptingUserName: user.name ?? "", // The current user's name
-        foodId: widget.foodId, // The foodId passed from the previous screen
+        foodId: foodId, // The foodId passed from the previous screen
       );
     } catch (e) {
       print("Error updating Firestore: $e");
