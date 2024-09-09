@@ -3,31 +3,32 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:save_food/constants/constants.dart';
-import 'package:save_food/models/food.dart';
-import 'package:save_food/providers/user_provider.dart';
 import 'package:save_food/screens/set_address_screen.dart';
-import 'package:save_food/utils/file_compressor.dart';
-import 'package:save_food/utils/navigate.dart';
-import 'package:save_food/utils/show_toast_message.dart';
 import 'package:save_food/utils/size_config.dart';
-import 'package:save_food/utils/validation_mixin.dart';
 import 'package:save_food/widgets/general_text_field.dart';
 
+import '../models/food.dart';
 import '../providers/food_provider.dart';
+import '../providers/user_provider.dart';
+import '../utils/file_compressor.dart';
+import '../utils/navigate.dart';
+import '../utils/show_toast_message.dart';
+import '../utils/validation_mixin.dart';
 import '../widgets/curved_body_widget.dart';
 import '../widgets/general_alert_dialog.dart';
 import '../widgets/general_elevated_button.dart';
 import '../widgets/general_text_button.dart';
 
-class FoodPostScreen extends StatefulWidget {
-  FoodPostScreen({Key? key}) : super(key: key);
+class UpdateFoodPostScreen extends StatefulWidget {
+  final Food? food; // Add a Food parameter for editing
+
+  UpdateFoodPostScreen({Key? key, this.food}) : super(key: key);
 
   @override
-  State<FoodPostScreen> createState() => _FoodPostScreenState();
+  State<UpdateFoodPostScreen> createState() => _FoodPostScreenState();
 }
 
-class _FoodPostScreenState extends State<FoodPostScreen> {
+class _FoodPostScreenState extends State<UpdateFoodPostScreen> {
   final imageController = TextEditingController();
   final nameController = TextEditingController();
   final descriptionController = TextEditingController();
@@ -38,13 +39,34 @@ class _FoodPostScreenState extends State<FoodPostScreen> {
   final latLngController = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
-  bool isPaid = false; // Track whether the food is paid or free
+  bool isPaid = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // If editing, populate fields with existing food data
+    if (widget.food != null) {
+      final food = widget.food!;
+      imageController.text = food.image;
+      nameController.text = food.name;
+      descriptionController.text = food.description;
+      quantityController.text = food.quantity.toString();
+      latitudeController.text = food.latitude.toString();
+      longitudeController.text = food.longitude.toString();
+      latLngController.text = "${food.latitude} N ${food.longitude} E";
+      isPaid = food.price != null;
+      if (isPaid) {
+        priceController.text = food.price.toString();
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Post Food"),
+        title: Text(widget.food == null ? "Post Food" : "Edit Food"),
       ),
       body: CurvedBodyWidget(
         widget: SingleChildScrollView(
@@ -55,7 +77,7 @@ class _FoodPostScreenState extends State<FoodPostScreen> {
               children: [
                 _buildTitle(context),
                 SizedBox(height: SizeConfig.height * 2),
-                _buildImagePicker(context),
+                _buildImageShow(context),
                 SizedBox(height: SizeConfig.height * 2),
                 _buildNameField(),
                 SizedBox(height: SizeConfig.height * 2),
@@ -66,7 +88,7 @@ class _FoodPostScreenState extends State<FoodPostScreen> {
                 if (isPaid) _buildPriceField(),
                 _buildDescriptionField(),
                 _buildLocationField(),
-                _buildChooseImageButton(),
+                _buildImagePicker(),
                 SizedBox(height: SizeConfig.height * 2),
                 _buildSubmitButton(),
               ],
@@ -77,46 +99,31 @@ class _FoodPostScreenState extends State<FoodPostScreen> {
     );
   }
 
-  // Widget to display the title
-  Widget _buildTitle(BuildContext context) {
-    return Text(
-      "Fill the information about Food",
-      style: Theme.of(context).textTheme.titleSmall!.copyWith(
-            fontWeight: FontWeight.w500,
-            fontSize: 18,
-          ),
-    );
-  }
-
-  // Widget to handle image selection
-  Widget _buildImagePicker(BuildContext context) {
-    return Center(
-      child: SizedBox(
-        height: SizeConfig.height * 20,
-        width: SizeConfig.width * 100,
-        child: imageController.text.isEmpty
-            ? Column(
-                children: [
-                  Icon(
-                    Icons.image,
-                    size: SizeConfig.height * 12,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                  Text(
-                    "Upload Image",
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ],
-              )
-            : Image.memory(
-                base64Decode(imageController.text),
-                fit: BoxFit.contain,
-              ),
+  Widget _buildLocationField() {
+    return GeneralTextField(
+      title: "Latitude and Longitude",
+      textInputType: TextInputType.none,
+      controller: latLngController,
+      isReadOnly: true,
+      suffixWidget: Icon(
+        Icons.arrow_drop_down_outlined,
+        size: SizeConfig.height * 3.5,
+        color: Theme.of(context).primaryColor,
       ),
+      onTap: () async {
+        final value = await navigate(context, const SetAddressScreen());
+        if (value != null) {
+          latitudeController.text = value.lat.toString();
+          longitudeController.text = value.lng.toString();
+          latLngController.text = "${value.lat} N ${value.lng} E";
+        }
+      },
+      textInputAction: TextInputAction.next,
+      validate: (v) => ValidationMixin().validate(v!, "Latitude and Longitude"),
+      onFieldSubmitted: (_) {},
     );
   }
 
-  // Food Name TextField
   Widget _buildNameField() {
     return GeneralTextField(
       title: "Food Name",
@@ -165,7 +172,6 @@ class _FoodPostScreenState extends State<FoodPostScreen> {
     );
   }
 
-  // Quantity TextField
   Widget _buildQuantityField() {
     return GeneralTextField(
       title: "Quantity",
@@ -209,34 +215,16 @@ class _FoodPostScreenState extends State<FoodPostScreen> {
     );
   }
 
-  // Latitude and Longitude Field
-  Widget _buildLocationField() {
-    return GeneralTextField(
-      title: "Latitude and Longitude",
-      textInputType: TextInputType.none,
-      controller: latLngController,
-      isReadOnly: true,
-      suffixWidget: Icon(
-        Icons.arrow_drop_down_outlined,
-        size: SizeConfig.height * 3.5,
-        color: Theme.of(context).primaryColor,
-      ),
-      onTap: () async {
-        final value = await navigate(context, const SetAddressScreen());
-        if (value != null) {
-          latitudeController.text = value.lat.toString();
-          longitudeController.text = value.lng.toString();
-          latLngController.text = "${value.lat} N ${value.lng} E";
-        }
-      },
-      textInputAction: TextInputAction.next,
-      validate: (v) => ValidationMixin().validate(v!, "Latitude and Longitude"),
-      onFieldSubmitted: (_) {},
+  _buildTitle(BuildContext context) {
+    return Text(
+      widget.food == null ? "Post Food" : "Edit Food",
+      style: Theme.of(context).textTheme.titleLarge!.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
     );
   }
 
-  // Button to choose an image
-  Widget _buildChooseImageButton() {
+  Widget _buildImagePicker() {
     return Column(
       children: [
         SizedBox(height: SizeConfig.height * 3),
@@ -251,23 +239,12 @@ class _FoodPostScreenState extends State<FoodPostScreen> {
     );
   }
 
-  // Submit Button
-  Widget _buildSubmitButton() {
-    return GeneralElevatedButton(
-      title: "Submit",
-      onPressed: () async {
-        onSubmit(context);
-      },
-    );
-  }
-
-  // Show bottom sheet for image selection
   Future<void> showBottomSheet(BuildContext context) async {
     final imagePicker = ImagePicker();
     await showModalBottomSheet(
       context: context,
       builder: (_) => Padding(
-        padding: basePadding,
+        padding: EdgeInsets.all(SizeConfig.width * 4),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -301,7 +278,6 @@ class _FoodPostScreenState extends State<FoodPostScreen> {
     );
   }
 
-  // Function to pick an image from the specified source
   Future<void> _pickImage(
       BuildContext context, ImagePicker imagePicker, ImageSource source) async {
     final xFile = await imagePicker.pickImage(source: source);
@@ -321,7 +297,6 @@ class _FoodPostScreenState extends State<FoodPostScreen> {
     }
   }
 
-  // Widget to display the options for choosing image
   Column buildChooseOptions(BuildContext context,
       {required Function func,
       required IconData iconData,
@@ -341,8 +316,44 @@ class _FoodPostScreenState extends State<FoodPostScreen> {
     );
   }
 
-  // Function to handle form submission
-  onSubmit(BuildContext context) async {
+  Widget _buildSubmitButton() {
+    return GeneralElevatedButton(
+      title: widget.food == null ? "Submit" : "Update", // Change button title
+      onPressed: () async {
+        onUpdateSubmit(context);
+      },
+    );
+  }
+
+  Widget _buildImageShow(BuildContext context) {
+    return Center(
+      child: SizedBox(
+        height: SizeConfig.height * 20,
+        width: SizeConfig.width * 100,
+        child: imageController.text.isEmpty
+            ? Column(
+                children: [
+                  Icon(
+                    Icons.image,
+                    size: SizeConfig.height * 12,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                  Text(
+                    "Upload Image",
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ],
+              )
+            : Image.memory(
+                base64Decode(imageController.text),
+                fit: BoxFit.contain,
+              ),
+      ),
+    );
+  }
+
+  // Function to handle form submission (Add/Update logic)
+  onUpdateSubmit(BuildContext context) async {
     if (formKey.currentState!.validate()) {
       try {
         if (imageController.text.isEmpty) {
@@ -351,6 +362,7 @@ class _FoodPostScreenState extends State<FoodPostScreen> {
         }
 
         final food = Food(
+          id: widget.food?.id,
           name: nameController.text,
           postedUserName:
               Provider.of<UserProvider>(context, listen: false).user.name ??
@@ -369,12 +381,23 @@ class _FoodPostScreenState extends State<FoodPostScreen> {
         );
 
         GeneralAlertDialog().customLoadingDialog(context);
-        await Provider.of<FoodProvider>(context, listen: false)
-            .addFoodPost(context, food);
-        showToast("Food added successfully");
-        Navigator.pop(context); // Close the loading dialog
+
+        if (widget.food == null) {
+          // Add new food post
+          await Provider.of<FoodProvider>(context, listen: false)
+              .addFoodPost(context, food);
+          showToast("Food added successfully");
+        } else {
+          await Provider.of<FoodProvider>(context, listen: false)
+              .updateFoodItem(context, food);
+          showToast("Food updated successfully");
+          Navigator.pop(context);
+        }
+
+        Navigator.pop(context);
       } catch (e) {
-        showToast("Failed to post food, make sure your connection is active");
+        showToast(
+            "Failed to ${widget.food == null ? "post" : "update"} food, make sure your connection is active");
       }
     }
   }

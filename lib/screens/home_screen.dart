@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:provider/provider.dart';
@@ -9,6 +10,7 @@ import 'package:save_food/models/food.dart';
 import 'package:save_food/models/user.dart';
 import 'package:save_food/providers/food_provider.dart';
 import 'package:save_food/screens/food_detail_screen.dart';
+import 'package:save_food/screens/update_food_screeen.dart';
 import 'package:save_food/widgets/general_drop_down.dart';
 import 'package:save_food/widgets/general_elevated_button.dart';
 import 'package:save_food/widgets/general_text_field.dart';
@@ -17,7 +19,6 @@ import '/providers/user_provider.dart';
 import '/utils/navigate.dart';
 import '/utils/size_config.dart';
 import '/widgets/curved_body_widget.dart';
-import '/widgets/general_alert_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -155,6 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Build Food List
   Widget _buildFoodList(AsyncSnapshot<QuerySnapshot> snapshot) {
+    final User currentUser = FirebaseAuth.instance.currentUser!;
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -169,7 +171,8 @@ class _HomeScreenState extends State<HomeScreen> {
               final food = Food.fromJson(
                   snapshot.data!.docs[index].data() as Map,
                   snapshot.data!.docs[index].id);
-              return foodCard(context, food);
+              bool isOwner = food.postedBy == currentUser.uid;
+              return foodCard(context, food, isOwner);
             },
             shrinkWrap: true,
             primary: false,
@@ -291,7 +294,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // Food Card Widget
-  Widget foodCard(BuildContext context, Food food) {
+  Widget foodCard(BuildContext context, Food food, bool isOwner) {
     final toShowButton =
         !Provider.of<UserProvider>(context, listen: false).user.isFoodDonor;
     return InkWell(
@@ -310,7 +313,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: Padding(
           padding: EdgeInsets.all(SizeConfig.width * 4),
-          child: _buildFoodCardDetails(context, food, toShowButton),
+          child: _buildFoodCardDetails(context, food, toShowButton, isOwner),
         ),
       ),
     );
@@ -318,11 +321,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Build Food Card Details
   Widget _buildFoodCardDetails(
-      BuildContext context, Food food, bool toShowButton) {
+      BuildContext context, Food food, bool toShowButton, bool isOwner) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildFoodImageRow(context, food),
+        _buildFoodImageRow(context, food, isOwner),
         SizedBox(height: SizeConfig.height * 2), // Adjusted spacing
         _buildFoodPriceRow(context, food),
         if (toShowButton || food.acceptingUserName != null)
@@ -334,13 +337,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // Build Food Image Row
-  Widget _buildFoodImageRow(BuildContext context, Food food) {
+  Widget _buildFoodImageRow(BuildContext context, Food food, bool isOwner) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildFoodImage(food),
         SizedBox(width: SizeConfig.width * 3), // Adjusted spacing
-        _buildFoodDetailsColumn(context, food),
+        _buildFoodDetailsColumn(context, food, isOwner),
       ],
     );
   }
@@ -359,17 +362,42 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // Build Food Details Column
-  Widget _buildFoodDetailsColumn(BuildContext context, Food food) {
+  Widget _buildFoodDetailsColumn(
+      BuildContext context, Food food, bool isOwner) {
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            food.name,
-            style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
+          Row(
+            children: [
+              Text(
+                food.name,
+                style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+              ),
+              const Spacer(),
+              isOwner &&
+                      Provider.of<UserProvider>(context, listen: false)
+                          .user
+                          .isFoodDonor
+                  ? IconButton(
+                      icon: const Icon(Icons.edit),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => UpdateFoodPostScreen(
+                              food: food,
+                            ),
+                          ),
+                        );
+                      },
+                    )
+                  : const SizedBox.shrink(),
+            ],
           ),
           SizedBox(height: SizeConfig.height * 0.5), // Adjusted spacing
           Text(
@@ -408,6 +436,29 @@ class _HomeScreenState extends State<HomeScreen> {
         _buildUnitPrice(context, food),
       ],
     );
+  }
+
+  void _updateFoodData(Food updatedFood) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('foodCollection')
+          .doc(updatedFood.id)
+          .update(updatedFood.toJson());
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Food updated successfully'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to update food'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   // Build Unit Price
@@ -540,33 +591,5 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
       ),
     );
-  }
-
-  // Handle Action Button Press
-  Future<void> _handleActionButtonPress(BuildContext context, Food food) async {
-    try {
-      if (food.price != null) {
-        /* Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => StripePaymentScreen(
-                foodId: food.id!, totalPrice: food.totalPrice.toString()),
-          ),
-        );*/
-      } else {
-        GeneralAlertDialog().customLoadingDialog(context);
-        final user = Provider.of<UserProvider>(context, listen: false).user;
-        await Provider.of<FoodProvider>(context, listen: false).updateFood(
-          context,
-          acceptingUserId: user.uuid,
-          acceptingUserName: user.name ?? "",
-          foodId: food.id!,
-        );
-        Navigator.pop(context);
-      }
-    } catch (ex) {
-      Navigator.pop(context);
-      GeneralAlertDialog().customAlertDialog(context, ex.toString());
-    }
   }
 }

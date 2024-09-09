@@ -2,9 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:save_food/constants/constants.dart';
 import 'package:save_food/models/food.dart';
-import 'package:save_food/providers/user_provider.dart';
 import 'package:save_food/utils/firebase_helper.dart';
-import 'package:provider/provider.dart';
 
 class FoodProvider extends ChangeNotifier {
   // List<Food> foods = [];
@@ -54,6 +52,20 @@ class FoodProvider extends ChangeNotifier {
       );
     } catch (ex) {
       print(ex.toString());
+      throw ex.toString();
+    }
+  }
+
+  updateFoodItem(BuildContext context, Food food) async {
+    try {
+      final map = food.toJson();
+      await FirebaseHelper().updateFoodData(
+        context,
+        map: map,
+        collectionId: FoodConstant.foodCollection,
+        documentId: food.id!,
+      );
+    } catch (ex) {
       throw ex.toString();
     }
   }

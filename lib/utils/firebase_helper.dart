@@ -144,6 +144,24 @@ class FirebaseHelper {
     }
   }
 
+  Future<void> updateFoodData(
+    BuildContext context, {
+    required Map<String, dynamic> map,
+    required String collectionId,
+    required String documentId,
+  }) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection(collectionId)
+          .doc(documentId)
+          .update(map);
+
+      print("Data updated successfully.");
+    } catch (ex) {
+      print("Error updating data: ${ex.toString()}");
+    }
+  }
+
   updateData(
     BuildContext context, {
     required Map<String, dynamic> map,
