@@ -70,6 +70,21 @@ class FoodProvider extends ChangeNotifier {
     }
   }
 
+  // Delete Food Item
+  deleteFoodItem(BuildContext context, String foodId) async {
+    try {
+      await FirebaseHelper().deleteFoodData(
+        context,
+        collectionId: FoodConstant.foodCollection,
+        documentId: foodId,
+      );
+
+      notifyListeners();
+    } catch (ex) {
+      throw ex.toString();
+    }
+  }
+
   updateFood(
     BuildContext context, {
     String? acceptingUserId,

@@ -383,7 +383,6 @@ class _FoodPostScreenState extends State<UpdateFoodPostScreen> {
         GeneralAlertDialog().customLoadingDialog(context);
 
         if (widget.food == null) {
-          // Add new food post
           await Provider.of<FoodProvider>(context, listen: false)
               .addFoodPost(context, food);
           showToast("Food added successfully");

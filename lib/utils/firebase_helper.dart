@@ -162,6 +162,22 @@ class FirebaseHelper {
     }
   }
 
+  deleteFoodData(
+    BuildContext context, {
+    required String collectionId,
+    required String documentId,
+  }) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection(collectionId)
+          .doc(documentId)
+          .delete();
+    } catch (ex) {
+      print(ex.toString());
+      throw ex.toString();
+    }
+  }
+
   updateData(
     BuildContext context, {
     required Map<String, dynamic> map,

@@ -11,6 +11,7 @@ import 'package:save_food/models/user.dart';
 import 'package:save_food/providers/food_provider.dart';
 import 'package:save_food/screens/food_detail_screen.dart';
 import 'package:save_food/screens/update_food_screeen.dart';
+import 'package:save_food/utils/show_toast_message.dart';
 import 'package:save_food/widgets/general_drop_down.dart';
 import 'package:save_food/widgets/general_elevated_button.dart';
 import 'package:save_food/widgets/general_text_field.dart';
@@ -19,6 +20,7 @@ import '/providers/user_provider.dart';
 import '/utils/navigate.dart';
 import '/utils/size_config.dart';
 import '/widgets/curved_body_widget.dart';
+import '../widgets/general_alert_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -364,6 +366,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // Build Food Details Column
   Widget _buildFoodDetailsColumn(
       BuildContext context, Food food, bool isOwner) {
+    String _selectedOption = 'None';
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -383,18 +386,47 @@ class _HomeScreenState extends State<HomeScreen> {
                       Provider.of<UserProvider>(context, listen: false)
                           .user
                           .isFoodDonor
-                  ? IconButton(
-                      icon: const Icon(Icons.edit),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => UpdateFoodPostScreen(
-                              food: food,
-                            ),
-                          ),
-                        );
+                  ? PopupMenuButton<String>(
+                      iconColor: Colors.green,
+                      onSelected: (String result) {
+                        setState(() {
+                          _selectedOption = result;
+                        });
                       },
+                      itemBuilder: (BuildContext context) =>
+                          <PopupMenuEntry<String>>[
+                        PopupMenuItem<String>(
+                          child: IconButton(
+                            icon: const Icon(Icons.edit_outlined,
+                                color: Colors.black),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => UpdateFoodPostScreen(
+                                    food: food,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        PopupMenuItem<String>(
+                          child: IconButton(
+                            icon: const Icon(Icons.delete_outlined,
+                                color: Colors.red),
+                            onPressed: () {
+                              Future.delayed(const Duration(seconds: 2), () {
+                                GeneralAlertDialog()
+                                    .customLoadingDialog(context);
+                              });
+                              Provider.of<FoodProvider>(context, listen: false)
+                                  .deleteFoodItem(context, food.id ?? "");
+                              showToast("Deleted successfully");
+                            },
+                          ),
+                        ),
+                      ],
                     )
                   : const SizedBox.shrink(),
             ],
